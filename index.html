@@ -21,8 +21,8 @@
 
     --dot-w:40px; --dot-h:8px;
 
-    --slide-ms:1000ms;     /* slide animation duration */
-    --interval-ms:3500ms;  /* total time per slide (progress length) */
+    --slide-ms:1000ms;
+    --interval-ms:3500ms;
   }
 
   *{box-sizing:border-box}
@@ -31,16 +31,17 @@
 
   .frame{
     width:var(--frame-w); height:var(--frame-h);
-    background:#fff; margin:24px auto; position:relative; overflow:hidden;
+    background:#fff; margin:0 auto; position:relative; overflow:hidden;
   }
   .inner{
     position:absolute; inset:0;
-    padding-left:var(--left-inset); padding-right:24px;
+    padding-left:var(--left-inset);
+    padding-right:var(--left-inset);
     display:flex; flex-direction:column;
   }
 
   .heading{
-    margin:16px 0 48px 0;  /* 48px gap below heading */
+    margin:0 0 48px 0;
     font-size:var(--heading-size); line-height:1.1;
     font-weight:300; letter-spacing:.02em; color:var(--muted);
   }
@@ -48,7 +49,7 @@
 
   .viewport{
     flex:1; overflow-x:hidden; overflow-y:hidden;
-    width:calc(var(--frame-w) - var(--left-inset) - 24px);
+    width:calc(var(--frame-w) - (var(--left-inset) * 2));
   }
   .track{
     display:flex; height:100%;
@@ -65,7 +66,6 @@
     width:var(--img-w); height:var(--img-h);
     background:#eee; overflow:hidden; align-self:flex-start;
   }
-  /* ↓↓↓ ONLY CHANGE: bias crop upward so faces aren't cut off */
   .photo img{
     width:100%; height:100%;
     object-fit:cover;
@@ -73,95 +73,57 @@
     filter:grayscale(100%);
   }
 
-  /* TEXT GROUP pinned to image height so dots/meta can anchor inside */
   .group{
     position:relative;
-    width:700px; height:var(--img-h);
+    /* CHANGED: fit exactly into remaining width to avoid right clipping */
+    width:calc(var(--frame-w) - (var(--left-inset) * 2) - var(--img-w) - var(--img-to-group-gap));
+    height:var(--img-h);
   }
 
-  .quoteMark {
-    font-weight: 300;
-    font-size: 64px;       /* keep the mark big */
-    line-height: 1;
-    transform: translateX(-5px);
-    margin: 0;
-    height: 33px;          /* small box height */
-    overflow: hidden;      /* crop excess top/bottom */
-    display: flex;
-    align-items: flex-start;
+  .quoteMark{
+    font-weight:300; font-size:64px; line-height:1;
+    transform:translateX(-5px);
+    margin:0; height:33px; overflow:hidden;
+    display:flex; align-items:flex-start;
   }
 
+  /* CHANGED: let text use full group width */
   .text{
     margin-top:var(--quote-to-text-gap);
-    max-width:700px; font-weight:300; font-size:14px; line-height:1.6;
+    max-width:100%; font-weight:300; font-size:14px; line-height:1.6;
+    padding-left:8px;
   }
 
-  /* name/designation: 86px above dots */
-.meta{
-  position:absolute; 
-  left:0;
-  bottom:calc(var(--meta-to-dots-gap) + var(--dot-h));
-  font-size:14px;
-  font-weight:300;
-  color:#000;        /* same as body */
-  line-height:1.3;   /* match body */
-}
+  .meta{
+    position:absolute; left:0;
+    bottom:calc(var(--meta-to-dots-gap) + var(--dot-h));
+    font-size:14px; font-weight:300; color:#000; line-height:1.3;
+  }
+  .meta strong, .meta .role{
+    display:inline; margin:0; padding:0; line-height:1.3; color:#000;
+  }
 
-.meta strong,
-.meta .role{
-  display:inline;    /* put them on same flow */
-  margin:0;
-  padding:0;
-  line-height:1.3;
-  color:#000;        /* exact same */
-}
-
-
-
-
-
-
-  /* Dots: bottom-left, left-aligned to text block */
+  /* CHANGED: follow group width */
   .dots{
     position:absolute; left:0; bottom:0;
-    width:700px; display:flex; justify-content:flex-start; align-items:center; gap:10px;
+    width:100%;
+    display:flex; justify-content:flex-start; align-items:center; gap:10px;
   }
- .dot {
-  position: relative;
-  width: 10px;
-  height: 12px;
-  border: 0;
-  background: #d3d3d3;
-  border-radius: 100%;   /* inactive dots = circles */
-  cursor: pointer;
-  transition: background 0.3s ease;
-  overflow: hidden;
-}
-
-/* active dot goes pill-shaped */
-.dot.active {
-  width: 75px;   /* your original long pill width */
-  height: 12px;
-  border-radius: 100px;
-  background: #d3d3d3;
-}
-
-.dot.active::after {
-  content: "";
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 0%;
-  background: #454E59;
-  border-radius: 5px;
-}
-
-.dot.playing::after {
-  animation: dotfill var(--interval-ms) linear forwards;
-}
-  @keyframes dotfill {
-    from { width:0%; }
-    to   { width:100%; }
+  .dot{
+    position:relative; width:10px; height:12px; border:0;
+    background:#d3d3d3; border-radius:100%;
+    cursor:pointer; transition:background .3s ease; overflow:hidden;
   }
+  .dot.active{
+    width:75px; height:12px; border-radius:100px; background:#d3d3d3;
+  }
+  .dot.active::after{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:0%;
+    background:#454E59; border-radius:5px;
+  }
+  .dot.playing::after{ animation: dotfill var(--interval-ms) linear forwards; }
+
+  @keyframes dotfill{ from{width:0%} to{width:100%} }
 </style>
 </head>
 <body>
@@ -178,8 +140,8 @@
 const track = document.getElementById('track');
 const viewport = document.getElementById('viewport');
 
-const TRANSITION_MS = 1000;   // keep synced with --slide-ms if you change it
-const AUTOPLAY_MS   = 3500;   // keep synced with --interval-ms if you change it
+const TRANSITION_MS = 1000;
+const AUTOPLAY_MS   = 3500;
 let idx = 0, timer = null;
 
 const slides = [
@@ -209,7 +171,7 @@ function build(){
     </section>
   `).join('');
 
-  document.querySelectorAll('.dots .dot').forEach((btn, k)=>{
+  document.querySelectorAll('.dots .dot').forEach((btn, k)=> {
     btn.addEventListener('click', ()=> go(k, true));
   });
 
@@ -218,21 +180,17 @@ function build(){
 }
 
 function updateDots(){
-  // Clear active/playing everywhere
   document.querySelectorAll('.dots .dot').forEach(d=>{
     d.classList.remove('active','playing');
     d.style.animation = 'none';
   });
 
-  // Set current index as active in ALL rows
   document.querySelectorAll('.dots').forEach(row=>{
     const dots = row.querySelectorAll('.dot');
     const active = dots[idx];
     if (!active) return;
-
     active.classList.add('active');
-    active.classList.remove('playing');
-    void active.offsetWidth;  // reflow to reset animation
+    void active.offsetWidth;
     active.classList.add('playing');
   });
 }
@@ -248,9 +206,6 @@ function next(){ go(idx+1,false); }
 function start(){ stop(); timer = setInterval(next, AUTOPLAY_MS); }
 function stop(){ if (timer) clearInterval(timer); }
 function restart(){ stop(); start(); }
-
-//viewport.addEventListener('mouseenter', stop);
-//viewport.addEventListener('mouseleave', start);
 
 window.addEventListener('load', build);
 </script>
