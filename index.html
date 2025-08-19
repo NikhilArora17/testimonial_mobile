@@ -26,6 +26,7 @@
 
     /* Animation */
     --enter-dur:1.5s;
+    --enter-dur-meta:1.8s;                 /* ← meta slower */
     --enter-ease:cubic-bezier(.22,.61,.36,1);
   }
 
@@ -131,18 +132,21 @@
      Entrance animation
      ========================= */
   .will-enter-left{ opacity:0; transform:translateX(-100%); }
+
+  /* ← missing before: start off-screen to the RIGHT */
+  .will-enter-right{ opacity:0; transform:translateX(100%); }
+  .meta.will-enter-right{ transform:translateX(750%); } /* meta farther */
+
   .enter-left{
     opacity:1; transform:translateX(0);
     transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
   }
-
-  .will-enter-right{ opacity:0; transform:translateX(100%); }
-  /* Meta travels farther to guarantee full off-screen start */
-  .meta.will-enter-right{ transform:translateX(250%); } /* NEW */
-
   .enter-right{
     opacity:1; transform:translateX(0);
     transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
+  }
+  .meta.enter-right{
+    transition:transform var(--enter-dur-meta) var(--enter-ease), opacity var(--enter-dur-meta) var(--enter-ease);
   }
 
   .will-reveal-bottom{ opacity:0; transform:translateY(100%); clip-path: inset(100% 0 0 0); }
@@ -173,7 +177,6 @@ const viewport = document.getElementById('viewport');
 
 const TRANSITION_MS = 1000;
 const AUTOPLAY_MS   = 3500;
-const ENTER_MS      = 1500; // must match --enter-dur
 
 let idx = 0, timer = null;
 let autoplayRunning = false; // gates dot fill
@@ -208,7 +211,7 @@ function build(){
   document.querySelectorAll('.dots .dot').forEach((btn, k)=>{ btn.addEventListener('click', ()=> go(k, true)); });
 
   go(0,false);            // set the first slide, but DON'T start autoplay yet
-  setupEntranceOnce();    // will call start() after ENTER_MS
+  setupEntranceOnce();    // starts autoplay after the longest entrance ends
 }
 
 function updateDots(){
@@ -251,6 +254,11 @@ function stop(){
 
 /* === One-time entrance animation === */
 function setupEntranceOnce(){
+  const root = getComputedStyle(document.documentElement);
+  const durDefault = parseFloat(root.getPropertyValue('--enter-dur'))*1000 || 1500;
+  const durMeta    = parseFloat(root.getPropertyValue('--enter-dur-meta'))*1000 || durDefault;
+  const wait = Math.max(durDefault, durMeta);
+
   const frame = document.getElementById('testimonial-frame');
   const heading = document.getElementById('heading');
   const firstSlide = track.querySelector('.slide');
@@ -276,8 +284,8 @@ function setupEntranceOnce(){
         done = true;
         io.unobserve(frame);
 
-        // Wait until entrance settles, THEN start autoplay & dot progress
-        setTimeout(()=>{ start(); }, ENTER_MS + 50);
+        // Wait until the LONGEST entrance (meta) finishes
+        setTimeout(()=>{ start(); }, wait + 50);
       }
     });
   }, {threshold: 0.25});
