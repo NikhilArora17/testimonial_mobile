@@ -23,6 +23,10 @@
 
     --slide-ms:1000ms;
     --interval-ms:3500ms;
+
+    /* Animation */
+    --enter-dur:1.5s;
+    --enter-ease:cubic-bezier(.22,.61,.36,1);
   }
 
   *{box-sizing:border-box}
@@ -75,9 +79,9 @@
 
   .group{
     position:relative;
-    /* CHANGED: fit exactly into remaining width to avoid right clipping */
     width:calc(var(--frame-w) - (var(--left-inset) * 2) - var(--img-w) - var(--img-to-group-gap));
     height:var(--img-h);
+    overflow:hidden; /* ensures off-screen starts are clipped */
   }
 
   .quoteMark{
@@ -87,7 +91,6 @@
     display:flex; align-items:flex-start;
   }
 
-  /* CHANGED: let text use full group width */
   .text{
     margin-top:var(--quote-to-text-gap);
     max-width:100%; font-weight:300; font-size:14px; line-height:1.6;
@@ -103,7 +106,6 @@
     display:inline; margin:0; padding:0; line-height:1.3; color:#000;
   }
 
-  /* CHANGED: follow group width */
   .dots{
     position:absolute; left:0; bottom:0;
     width:100%;
@@ -124,12 +126,41 @@
   .dot.playing::after{ animation: dotfill var(--interval-ms) linear forwards; }
 
   @keyframes dotfill{ from{width:0%} to{width:100%} }
+
+  /* =========================
+     Entrance animation
+     ========================= */
+  .will-enter-left{ opacity:0; transform:translateX(-100%); }
+  .enter-left{
+    opacity:1; transform:translateX(0);
+    transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
+  }
+
+  .will-enter-right{ opacity:0; transform:translateX(100%); }
+  /* Meta travels farther to guarantee full off-screen start */
+  .meta.will-enter-right{ transform:translateX(250%); } /* NEW */
+
+  .enter-right{
+    opacity:1; transform:translateX(0);
+    transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
+  }
+
+  .will-reveal-bottom{ opacity:0; transform:translateY(100%); clip-path: inset(100% 0 0 0); }
+  .reveal-bottom{
+    opacity:1; transform:translateY(0); clip-path: inset(0 0 0 0);
+    transition:clip-path var(--enter-dur) var(--enter-ease), transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .will-enter-left, .will-enter-right, .will-reveal-bottom{opacity:1; transform:none; clip-path:none}
+    .enter-left, .enter-right, .reveal-bottom{transition:none}
+  }
 </style>
 </head>
 <body>
-<div class="frame">
+<div class="frame" id="testimonial-frame">
   <div class="inner">
-    <div class="heading">WHAT OUR CLIENTS<br>ARE <em>SAYING</em></div>
+    <div class="heading will-enter-left" id="heading">WHAT OUR CLIENTS<br>ARE <em>SAYING</em></div>
     <div class="viewport" id="viewport">
       <div class="track" id="track"></div>
     </div>
@@ -142,7 +173,10 @@ const viewport = document.getElementById('viewport');
 
 const TRANSITION_MS = 1000;
 const AUTOPLAY_MS   = 3500;
+const ENTER_MS      = 1500; // must match --enter-dur
+
 let idx = 0, timer = null;
+let autoplayRunning = false; // gates dot fill
 
 const slides = [
   { img: 'public/1.jpg',
@@ -159,24 +193,22 @@ const slides = [
 function build(){
   track.innerHTML = slides.map((s, i) => `
     <section class="slide">
-      <div class="photo"><img src="${s.img}" alt="${s.name}"></div>
+      <div class="photo ${i===0?'will-reveal-bottom':''}"><img src="${s.img}" alt="${s.name}"></div>
       <div class="group">
-        <div class="quoteMark">“</div>
-        <div class="text">${s.quote}</div>
-        <div class="meta"><strong>${s.name}</strong><br><span class="role">${s.role}</span></div>
-        <div class="dots" data-dots="${i}">
+        <div class="quoteMark ${i===0?'will-enter-right':''}">“</div>
+        <div class="text ${i===0?'will-enter-right':''}">${s.quote}</div>
+        <div class="meta ${i===0?'will-enter-right':''}"><strong>${s.name}</strong><br><span class="role">${s.role}</span></div>
+        <div class="dots ${i===0?'will-enter-right':''}" data-dots="${i}">
           ${slides.map((_, k)=> `<button class="dot ${k===0?'active':''}" aria-label="Go to slide ${k+1}"></button>`).join('')}
         </div>
       </div>
     </section>
   `).join('');
 
-  document.querySelectorAll('.dots .dot').forEach((btn, k)=> {
-    btn.addEventListener('click', ()=> go(k, true));
-  });
+  document.querySelectorAll('.dots .dot').forEach((btn, k)=>{ btn.addEventListener('click', ()=> go(k, true)); });
 
-  go(0,false);
-  start();
+  go(0,false);            // set the first slide, but DON'T start autoplay yet
+  setupEntranceOnce();    // will call start() after ENTER_MS
 }
 
 function updateDots(){
@@ -184,14 +216,16 @@ function updateDots(){
     d.classList.remove('active','playing');
     d.style.animation = 'none';
   });
-
   document.querySelectorAll('.dots').forEach(row=>{
     const dots = row.querySelectorAll('.dot');
     const active = dots[idx];
     if (!active) return;
     active.classList.add('active');
-    void active.offsetWidth;
-    active.classList.add('playing');
+    if (autoplayRunning){
+      active.classList.remove('playing');
+      void active.offsetWidth;
+      active.classList.add('playing');
+    }
   });
 }
 
@@ -203,9 +237,53 @@ function go(i, user=false){
 }
 
 function next(){ go(idx+1,false); }
-function start(){ stop(); timer = setInterval(next, AUTOPLAY_MS); }
-function stop(){ if (timer) clearInterval(timer); }
-function restart(){ stop(); start(); }
+function start(){
+  stop();
+  autoplayRunning = true;  // enable dot fill
+  updateDots();            // kick the fill animation now
+  timer = setInterval(next, AUTOPLAY_MS);
+}
+function stop(){
+  if (timer) clearInterval(timer);
+  timer = null;
+  autoplayRunning = false; // pause dot fill
+}
+
+/* === One-time entrance animation === */
+function setupEntranceOnce(){
+  const frame = document.getElementById('testimonial-frame');
+  const heading = document.getElementById('heading');
+  const firstSlide = track.querySelector('.slide');
+  const photo = firstSlide.querySelector('.photo');
+  const quote = firstSlide.querySelector('.quoteMark');
+  const text  = firstSlide.querySelector('.text');
+  const meta  = firstSlide.querySelector('.meta');
+  const dots  = firstSlide.querySelector('.dots');
+
+  let done = false;
+
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if (done) return;
+      if (entry.isIntersecting){
+        heading.classList.add('enter-left');
+        photo.classList.add('reveal-bottom');
+        [quote, text, meta, dots].forEach(el => el.classList.add('enter-right'));
+
+        [heading, quote, text, meta, dots].forEach(el=> el.classList.remove('will-enter-left','will-enter-right'));
+        photo.classList.remove('will-reveal-bottom');
+
+        done = true;
+        io.unobserve(frame);
+
+        // Wait until entrance settles, THEN start autoplay & dot progress
+        setTimeout(()=>{ start(); }, ENTER_MS + 50);
+      }
+    });
+  }, {threshold: 0.25});
+
+  io.observe(frame);
+}
 
 window.addEventListener('load', build);
 </script>
