@@ -9,13 +9,14 @@
 <style>
   :root{
     /* mobile sizing */
-    --frame-w:393px;
-    --side-margin:50px;
-    --left-inset:16px;
+    --frame-w:378px;       /* CHANGED: total block width (centered) */
+    --side-margin:0px;     /* CHANGED: no outer side margin; we center the frame */
+    --left-inset:42px;     /* CHANGED: inner L/R padding so content = 294px */
 
     --muted:#B1B5C0; --emph:#454E59;
     --heading-size:28px;
 
+    /* content width = frame - (42 + 42) = 294px */
     --img-w:calc(var(--frame-w) - (var(--left-inset) * 2));
     --img-h:260px;
     --img-to-group-gap:16px;
@@ -41,7 +42,7 @@
 
   .frame{
     width:var(--frame-w);
-    margin:0 var(--side-margin);
+    margin:0 auto;             /* CHANGED: center the 378px block */
     position:relative;
     overflow:hidden;
   }
@@ -61,7 +62,7 @@
   .heading em{font-style:normal;color:var(--emph);}
 
   .viewport{
-    width:calc(var(--frame-w) - (var(--left-inset) * 2));
+    width:calc(var(--frame-w) - (var(--left-inset) * 2)); /* = 294px */
     overflow:hidden;              /* hides next slide during entrance */
   }
   .track{
@@ -175,7 +176,7 @@
     </div>
 
     <!-- fixed-position dots row -->
-   <div class="dots will-enter-left" id="dots"></div>
+    <div class="dots will-enter-left" id="dots"></div>
   </div>
 </div>
 
@@ -263,7 +264,7 @@ function runEntranceOnce(){
   const quote = first.querySelector('.quoteMark');
   const text  = first.querySelector('.text');
   const meta  = first.querySelector('.meta');
-  const dots  = document.getElementById('dots');   // 👈 add this
+  const dots  = document.getElementById('dots');
 
   let done = false;
 
@@ -273,9 +274,9 @@ function runEntranceOnce(){
       if (entry.isIntersecting){
         heading.classList.add('enter-left');
         photo.classList.add('reveal-mask');
-        [quote,text,meta,dots].forEach(el => el.classList.add('enter-left')); // 👈 include dots
+        [quote,text,meta,dots].forEach(el => el.classList.add('enter-left'));
 
-        [heading,quote,text,meta,dots].forEach(el=> el.classList.remove('will-enter-left')); // 👈 include dots
+        [heading,quote,text,meta,dots].forEach(el=> el.classList.remove('will-enter-left'));
         photo.classList.remove('will-reveal-mask');
 
         done = true;
