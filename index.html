@@ -175,7 +175,7 @@
     </div>
 
     <!-- fixed-position dots row -->
-    <div class="dots" id="dots"></div>
+   <div class="dots will-enter-left" id="dots"></div>
   </div>
 </div>
 
@@ -263,6 +263,7 @@ function runEntranceOnce(){
   const quote = first.querySelector('.quoteMark');
   const text  = first.querySelector('.text');
   const meta  = first.querySelector('.meta');
+  const dots  = document.getElementById('dots');   // 👈 add this
 
   let done = false;
 
@@ -270,13 +271,11 @@ function runEntranceOnce(){
     entries.forEach(entry=>{
       if (done) return;
       if (entry.isIntersecting){
-        // trigger animations
         heading.classList.add('enter-left');
         photo.classList.add('reveal-mask');
-        [quote,text,meta].forEach(el => el.classList.add('enter-left'));
+        [quote,text,meta,dots].forEach(el => el.classList.add('enter-left')); // 👈 include dots
 
-        // clean flags so other slides are unaffected
-        [heading,quote,text,meta].forEach(el=> el.classList.remove('will-enter-left'));
+        [heading,quote,text,meta,dots].forEach(el=> el.classList.remove('will-enter-left')); // 👈 include dots
         photo.classList.remove('will-reveal-mask');
 
         done = true;
