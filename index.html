@@ -2,184 +2,191 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Testimonials</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"/>
+<title>Testimonials Fixed Dots</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300&display=swap" rel="stylesheet">
 <style>
   :root{
+    /* mobile sizing */
+    --frame-w:393px;
+    --side-margin:50px;
+    --left-inset:16px;
+
     --muted:#B1B5C0; --emph:#454E59;
-    --frame-w:1439px; --frame-h:521px; --left-inset:156px;
-    --heading-size:40px;
+    --heading-size:28px;
 
-    --img-w:394px; --img-h:341px;
-    --img-to-group-gap:42px;
+    --img-w:calc(var(--frame-w) - (var(--left-inset) * 2));
+    --img-h:260px;
+    --img-to-group-gap:16px;
 
-    --quote-to-text-gap:26px;
-    --text-to-meta-gap:86px;
-    --meta-to-dots-gap:86px;
+    --quote-to-text-gap:14px;
+    --text-to-meta-gap:40px;
 
-    --dot-w:40px; --dot-h:8px;
+    --dot-w:36px; 
+    --dot-h:12px;
 
     --slide-ms:1000ms;
     --interval-ms:3500ms;
 
-    /* Animation */
+    /* Entrance animation */
     --enter-dur:1.5s;
-    --enter-dur-meta:1.8s;                 /* ← meta slower */
+    --enter-dur-meta:1.8s;   /* meta slower */
     --enter-ease:cubic-bezier(.22,.61,.36,1);
   }
 
   *{box-sizing:border-box}
-  html,body{margin:0;background:#fff;color:#000}
-  body{font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  html,body{margin:0;background:#fff;color:#000;font-family:Manrope,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  body{display:flex;justify-content:center;}
 
   .frame{
-    width:var(--frame-w); height:var(--frame-h);
-    background:#fff; margin:0 auto; position:relative; overflow:hidden;
+    width:var(--frame-w);
+    margin:0 var(--side-margin);
+    position:relative;
+    overflow:hidden;
   }
   .inner{
-    position:absolute; inset:0;
     padding-left:var(--left-inset);
     padding-right:var(--left-inset);
-    display:flex; flex-direction:column;
   }
 
   .heading{
-    margin:0 0 48px 0;
-    font-size:var(--heading-size); line-height:1.1;
-    font-weight:300; letter-spacing:.02em; color:var(--muted);
+    margin:0 0 18px 0;
+    font-size:var(--heading-size);
+    line-height:1.1;
+    font-weight:300;
+    letter-spacing:.02em;
+    color:var(--muted);
   }
-  .heading em{font-style:normal; color:var(--emph);}
+  .heading em{font-style:normal;color:var(--emph);}
 
   .viewport{
-    flex:1; overflow-x:hidden; overflow-y:hidden;
     width:calc(var(--frame-w) - (var(--left-inset) * 2));
+    overflow:hidden;              /* hides next slide during entrance */
   }
   .track{
-    display:flex; height:100%;
+    display:flex;
     transition:transform var(--slide-ms) cubic-bezier(.25,.1,.25,1);
     will-change:transform;
   }
 
   .slide{
-    flex:0 0 100%; height:100%;
-    display:flex; align-items:flex-start; gap:var(--img-to-group-gap);
+    flex:0 0 100%;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:var(--img-to-group-gap);
   }
 
   .photo{
-    width:var(--img-w); height:var(--img-h);
-    background:#eee; overflow:hidden; align-self:flex-start;
+    width:var(--img-w);
+    height:var(--img-h);
+    background:#eee;
+    overflow:hidden;
   }
   .photo img{
     width:100%; height:100%;
-    object-fit:cover;
-    object-position:50% 18%;
+    object-fit:cover; object-position:50% 18%;
     filter:grayscale(100%);
   }
 
   .group{
-    position:relative;
-    width:calc(var(--frame-w) - (var(--left-inset) * 2) - var(--img-w) - var(--img-to-group-gap));
-    height:var(--img-h);
-    overflow:hidden; /* ensures off-screen starts are clipped */
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
   }
 
   .quoteMark{
-    font-weight:300; font-size:64px; line-height:1;
-    transform:translateX(-5px);
-    margin:0; height:33px; overflow:hidden;
+    font-weight:300; font-size:48px; line-height:1;
+    transform:translateX(-3px);
+    margin:0; height:28px; overflow:hidden;
     display:flex; align-items:flex-start;
   }
 
   .text{
     margin-top:var(--quote-to-text-gap);
-    max-width:100%; font-weight:300; font-size:14px; line-height:1.6;
-    padding-left:0px;
+    max-width:100%;
+    font-weight:300; font-size:14px; line-height:1.6;
   }
 
   .meta{
-    position:absolute; left:0;
-    bottom:calc(var(--meta-to-dots-gap) + var(--dot-h));
-    font-size:14px; font-weight:300; color:#000; line-height:1.3;
+    margin-top:var(--text-to-meta-gap);
+    font-size:14px; font-weight:300; line-height:1.3; color:#000;
   }
-  .meta strong, .meta .role{
-    display:inline; margin:0; padding:0; line-height:1.3; color:#000;
-  }
+  .meta strong,.meta .role{display:inline;margin:0;padding:0;line-height:1.3;color:#000}
 
+  /* dots row outside the slides so position is ALWAYS fixed */
   .dots{
-    position:absolute; left:0; bottom:0;
     width:100%;
-    display:flex; justify-content:flex-start; align-items:center; gap:10px;
+    margin-top:24px;
+    display:flex; gap:8px; justify-content:flex-start;
   }
   .dot{
-    position:relative; width:10px; height:12px; border:0;
+    position:relative; width:8px; height:12px; border:0;
     background:#d3d3d3; border-radius:100%;
-    cursor:pointer; transition:background .3s ease; overflow:hidden;
+    cursor:pointer; overflow:hidden;
   }
   .dot.active{
-    width:75px; height:12px; border-radius:100px; background:#d3d3d3;
+    width:var(--dot-w); height:var(--dot-h);
+    border-radius:100px; background:#d3d3d3;
   }
   .dot.active::after{
     content:""; position:absolute; left:0; top:0; bottom:0; width:0%;
-    background:#454E59; border-radius:5px;
+    background:#454E59; border-radius:100px;
   }
   .dot.playing::after{ animation: dotfill var(--interval-ms) linear forwards; }
-
   @keyframes dotfill{ from{width:0%} to{width:100%} }
 
-  /* =========================
-     Entrance animation
-     ========================= */
+  /* ===== one-time entrance (FIRST slide only) ===== */
+  /* start states added only to first slide + heading */
   .will-enter-left{ opacity:0; transform:translateX(-100%); }
-
-  /* ← missing before: start off-screen to the RIGHT */
-  .will-enter-right{ opacity:0; transform:translateX(100%); }
-  .meta.will-enter-right{ transform:translateX(750%); } /* meta farther */
-
   .enter-left{
     opacity:1; transform:translateX(0);
     transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
   }
-  .enter-right{
-    opacity:1; transform:translateX(0);
-    transition:transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
-  }
-  .meta.enter-right{
+  .meta.enter-left{
     transition:transform var(--enter-dur-meta) var(--enter-ease), opacity var(--enter-dur-meta) var(--enter-ease);
   }
 
-  .will-reveal-bottom{ opacity:0; transform:translateY(100%); clip-path: inset(100% 0 0 0); }
-  .reveal-bottom{
-    opacity:1; transform:translateY(0); clip-path: inset(0 0 0 0);
-    transition:clip-path var(--enter-dur) var(--enter-ease), transform var(--enter-dur) var(--enter-ease), opacity var(--enter-dur) var(--enter-ease);
+  /* photo: REVEAL from bottom via clip-path (no slide) */
+  .will-reveal-mask { clip-path: inset(100% 0 0 0); }
+  .reveal-mask{
+    clip-path: inset(0 0 0 0);
+    transition:clip-path var(--enter-dur) var(--enter-ease);
   }
 
-  @media (prefers-reduced-motion: reduce){
-    .will-enter-left, .will-enter-right, .will-reveal-bottom{opacity:1; transform:none; clip-path:none}
-    .enter-left, .enter-right, .reveal-bottom{transition:none}
+  @media (prefers-reduced-motion:reduce){
+    .will-enter-left{opacity:1; transform:none}
+    .enter-left{transition:none}
+    .will-reveal-mask,.reveal-mask{clip-path:none; transition:none}
+    .dot.playing::after{animation:none !important; width:100%}
   }
 </style>
 </head>
 <body>
-<div class="frame" id="testimonial-frame">
+<div class="frame" id="frame">
   <div class="inner">
+    <!-- heading animates from LEFT once -->
     <div class="heading will-enter-left" id="heading">WHAT OUR CLIENTS<br>ARE <em>SAYING</em></div>
+
     <div class="viewport" id="viewport">
       <div class="track" id="track"></div>
     </div>
+
+    <!-- fixed-position dots row -->
+    <div class="dots" id="dots"></div>
   </div>
 </div>
 
 <script>
 const track = document.getElementById('track');
-const viewport = document.getElementById('viewport');
+const dotsContainer = document.getElementById('dots');
 
 const TRANSITION_MS = 1000;
 const AUTOPLAY_MS   = 3500;
 
 let idx = 0, timer = null;
-let autoplayRunning = false; // gates dot fill
 
 const slides = [
   { img: 'public/1.jpg',
@@ -194,42 +201,45 @@ const slides = [
 ];
 
 function build(){
-  track.innerHTML = slides.map((s, i) => `
-    <section class="slide">
-      <div class="photo ${i===0?'will-reveal-bottom':''}"><img src="${s.img}" alt="${s.name}"></div>
+  track.innerHTML = slides.map((s, i)=>`
+    <section class="slide ${i===0?'first':''}">
+      <div class="photo ${i===0?'will-reveal-mask':''}">
+        <img src="${s.img}" alt="${s.name}">
+      </div>
       <div class="group">
-        <div class="quoteMark ${i===0?'will-enter-right':''}">“</div>
-        <div class="text ${i===0?'will-enter-right':''}">${s.quote}</div>
-        <div class="meta ${i===0?'will-enter-right':''}"><strong>${s.name}</strong><br><span class="role">${s.role}</span></div>
-        <div class="dots ${i===0?'will-enter-right':''}" data-dots="${i}">
-          ${slides.map((_, k)=> `<button class="dot ${k===0?'active':''}" aria-label="Go to slide ${k+1}"></button>`).join('')}
+        <div class="quoteMark ${i===0?'will-enter-left':''}">“</div>
+        <div class="text ${i===0?'will-enter-left':''}">${s.quote}</div>
+        <div class="meta ${i===0?'will-enter-left':''}">
+          <strong>${s.name}</strong><br><span class="role">${s.role}</span>
         </div>
       </div>
     </section>
   `).join('');
 
-  document.querySelectorAll('.dots .dot').forEach((btn, k)=>{ btn.addEventListener('click', ()=> go(k, true)); });
+  dotsContainer.innerHTML = slides.map((_,k)=>`
+    <button class="dot ${k===0?'active':''}" aria-label="Go to slide ${k+1}"></button>
+  `).join('');
 
-  go(0,false);            // set the first slide, but DON'T start autoplay yet
-  setupEntranceOnce();    // starts autoplay after the longest entrance ends
+  dotsContainer.querySelectorAll('.dot').forEach((btn,k)=>{
+    btn.addEventListener('click', ()=> go(k,true));
+  });
+
+  // show slide 0, but don't start autoplay until entrance finishes
+  go(0,false);
+  runEntranceOnce();
 }
 
 function updateDots(){
-  document.querySelectorAll('.dots .dot').forEach(d=>{
+  dotsContainer.querySelectorAll('.dot').forEach(d=>{
     d.classList.remove('active','playing');
     d.style.animation = 'none';
   });
-  document.querySelectorAll('.dots').forEach(row=>{
-    const dots = row.querySelectorAll('.dot');
-    const active = dots[idx];
-    if (!active) return;
+  const active = dotsContainer.querySelectorAll('.dot')[idx];
+  if(active){
     active.classList.add('active');
-    if (autoplayRunning){
-      active.classList.remove('playing');
-      void active.offsetWidth;
-      active.classList.add('playing');
-    }
-  });
+    void active.offsetWidth;  // restart fill animation
+    active.classList.add('playing');
+  }
 }
 
 function go(i, user=false){
@@ -240,33 +250,19 @@ function go(i, user=false){
 }
 
 function next(){ go(idx+1,false); }
-function start(){
-  stop();
-  autoplayRunning = true;  // enable dot fill
-  updateDots();            // kick the fill animation now
-  timer = setInterval(next, AUTOPLAY_MS);
-}
-function stop(){
-  if (timer) clearInterval(timer);
-  timer = null;
-  autoplayRunning = false; // pause dot fill
-}
+function start(){ stop(); timer = setInterval(next, AUTOPLAY_MS); }
+function stop(){ if (timer) clearInterval(timer); }
+function restart(){ stop(); start(); }
 
-/* === One-time entrance animation === */
-function setupEntranceOnce(){
-  const root = getComputedStyle(document.documentElement);
-  const durDefault = parseFloat(root.getPropertyValue('--enter-dur'))*1000 || 1500;
-  const durMeta    = parseFloat(root.getPropertyValue('--enter-dur-meta'))*1000 || durDefault;
-  const wait = Math.max(durDefault, durMeta);
-
-  const frame = document.getElementById('testimonial-frame');
+/* One-time entrance: only heading + FIRST slide elements */
+function runEntranceOnce(){
+  const frame = document.getElementById('frame');
   const heading = document.getElementById('heading');
-  const firstSlide = track.querySelector('.slide');
-  const photo = firstSlide.querySelector('.photo');
-  const quote = firstSlide.querySelector('.quoteMark');
-  const text  = firstSlide.querySelector('.text');
-  const meta  = firstSlide.querySelector('.meta');
-  const dots  = firstSlide.querySelector('.dots');
+  const first = track.querySelector('.slide.first');
+  const photo = first.querySelector('.photo');
+  const quote = first.querySelector('.quoteMark');
+  const text  = first.querySelector('.text');
+  const meta  = first.querySelector('.meta');
 
   let done = false;
 
@@ -274,18 +270,24 @@ function setupEntranceOnce(){
     entries.forEach(entry=>{
       if (done) return;
       if (entry.isIntersecting){
+        // trigger animations
         heading.classList.add('enter-left');
-        photo.classList.add('reveal-bottom');
-        [quote, text, meta, dots].forEach(el => el.classList.add('enter-right'));
+        photo.classList.add('reveal-mask');
+        [quote,text,meta].forEach(el => el.classList.add('enter-left'));
 
-        [heading, quote, text, meta, dots].forEach(el=> el.classList.remove('will-enter-left','will-enter-right'));
-        photo.classList.remove('will-reveal-bottom');
+        // clean flags so other slides are unaffected
+        [heading,quote,text,meta].forEach(el=> el.classList.remove('will-enter-left'));
+        photo.classList.remove('will-reveal-mask');
 
         done = true;
         io.unobserve(frame);
 
-        // Wait until the LONGEST entrance (meta) finishes
-        setTimeout(()=>{ start(); }, wait + 50);
+        const root = getComputedStyle(document.documentElement);
+        const durDefault = parseFloat(root.getPropertyValue('--enter-dur'))*1000 || 1500;
+        const durMeta    = parseFloat(root.getPropertyValue('--enter-dur-meta'))*1000 || durDefault;
+        const wait = Math.max(durDefault, durMeta);
+
+        setTimeout(()=> start(), wait + 50);
       }
     });
   }, {threshold: 0.25});
